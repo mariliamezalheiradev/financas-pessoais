@@ -12,7 +12,7 @@ O projeto pode ser visualizado de duas formas:
 * Acessando a versão online pelo GitHub Pages.
 
 ```text
-https://seu-usuario.github.io/financas-pessoais-html-css-js/
+https://mariliamezalheiradev.github.io/financas-pessoais-html-css-js/
 ```
 
 ## Funcionalidades
