@@ -172,6 +172,54 @@ function todayISO() {
   return new Date().toISOString().slice(0, 10);
 }
 
+function isoToBRDate(isoDate) {
+  if (!isoDate) return "";
+
+  if (isoDate.includes("/")) {
+    return isoDate;
+  }
+
+  const [year, month, day] = isoDate.split("-");
+  if (!year || !month || !day) return isoDate;
+
+  return `${day}/${month}/${year}`;
+}
+
+function brDateToISO(brDate) {
+  if (!brDate) return "";
+
+  if (brDate.includes("-")) {
+    return brDate;
+  }
+
+  const [day, month, year] = brDate.split("/");
+  if (!day || !month || !year) return brDate;
+
+  return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+}
+
+function todayBR() {
+  return isoToBRDate(todayISO());
+}
+
+function aplicarMascaraData(input) {
+  if (!input) return;
+
+  input.addEventListener("input", () => {
+    let valor = input.value.replace(/\D/g, "");
+
+    if (valor.length > 2) {
+      valor = valor.slice(0, 2) + "/" + valor.slice(2);
+    }
+
+    if (valor.length > 5) {
+      valor = valor.slice(0, 5) + "/" + valor.slice(5, 9);
+    }
+
+    input.value = valor;
+  });
+}
+
 function getUserDataKey(type) {
   return `fp_${type}_${state.currentUser.email}`;
 }
@@ -195,24 +243,33 @@ function formatCurrency(value) {
   });
 }
 
-function formatDate(isoDate) {
-  if (!isoDate) return "";
+function formatDate(dateValue) {
+  if (!dateValue) return "";
+
+  const isoDate = brDateToISO(dateValue);
   const [year, month, day] = isoDate.split("-");
-  if (!year || !month || !day) return isoDate;
+
+  if (!year || !month || !day) return dateValue;
+
   return state.language === "pt" ? `${day}/${month}/${year}` : `${month}/${day}/${year}`;
 }
 
-function daysUntil(date) {
+function daysUntil(dateValue) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const target = new Date(`${date}T00:00:00`);
+
+  const isoDate = brDateToISO(dateValue);
+  const target = new Date(`${isoDate}T00:00:00`);
+
   return Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 }
 
 function dueText(date) {
   const days = daysUntil(date);
+
   if (days < 0) return `${text().overdue} ${Math.abs(days)} ${text().days}`;
   if (days === 0) return text().today;
+
   return `${text().dueIn} ${days} ${text().days}`;
 }
 
@@ -229,48 +286,66 @@ function applySettings() {
   saveSettings();
 }
 
+function setText(selector, value) {
+  const element = $(selector);
+  if (element) element.textContent = value;
+}
+
 function translatePage() {
   const t = text();
-  $$('[data-i18n]').forEach((element) => {
+
+  $$("[data-i18n]").forEach((element) => {
     const key = element.dataset.i18n;
     if (t[key]) element.textContent = t[key];
   });
 
-  $("#loginTab").textContent = t.login;
-  $("#registerTab").textContent = t.register;
-  $("#authTitle").textContent = state.authMode === "login" ? t.loginTitle : t.registerTitle;
-  $("#authSubmit").textContent = state.authMode === "login" ? t.enter : t.createAccount;
+  setText("#loginTab", t.login);
+  setText("#registerTab", t.register);
+  setText("#authTitle", state.authMode === "login" ? t.loginTitle : t.registerTitle);
+  setText("#authSubmit", state.authMode === "login" ? t.enter : t.createAccount);
 
-  $("#authLanguageButton").textContent = t.switchLanguage;
-  $("#languageButton").textContent = t.switchLanguage;
-  $("#authThemeButton").textContent = state.darkMode ? t.lightMode : t.darkMode;
-  $("#themeButton").textContent = state.darkMode ? t.lightMode : t.darkMode;
-  $("#logoutButton").textContent = t.logout;
-  $("#priorityTitle").textContent = t.pendingBills;
+  setText("#authLanguageButton", t.switchLanguage);
+  setText("#languageButton", t.switchLanguage);
+  setText("#authThemeButton", state.darkMode ? t.lightMode : t.darkMode);
+  setText("#themeButton", state.darkMode ? t.lightMode : t.darkMode);
+  setText("#logoutButton", t.logout);
+  setText("#priorityTitle", t.pendingBills);
 
   if (state.currentUser) {
-    $("#welcomeTitle").textContent = `${t.hello}, ${state.currentUser.name}!`;
+    setText("#welcomeTitle", `${t.hello}, ${state.currentUser.name}!`);
   }
 }
 
 function setAuthMode(mode) {
   state.authMode = mode;
-  $("#loginTab").classList.toggle("active", mode === "login");
-  $("#registerTab").classList.toggle("active", mode === "register");
-  $("#nameField").classList.toggle("hidden", mode !== "register");
-  $("#nameInput").required = mode === "register";
+
+  const loginTab = $("#loginTab");
+  const registerTab = $("#registerTab");
+  const nameField = $("#nameField");
+  const nameInput = $("#nameInput");
+
+  if (loginTab) loginTab.classList.toggle("active", mode === "login");
+  if (registerTab) registerTab.classList.toggle("active", mode === "register");
+  if (nameField) nameField.classList.toggle("hidden", mode !== "register");
+  if (nameInput) nameInput.required = mode === "register";
+
   hideAuthError();
   translatePage();
 }
 
 function showAuthError(message) {
   const box = $("#authError");
+  if (!box) return;
+
   box.textContent = message;
   box.classList.remove("hidden");
 }
 
 function hideAuthError() {
-  $("#authError").classList.add("hidden");
+  const box = $("#authError");
+  if (!box) return;
+
+  box.classList.add("hidden");
 }
 
 function handleAuthSubmit(event) {
@@ -306,6 +381,7 @@ function handleAuthSubmit(event) {
   }
 
   const foundUser = users.find((user) => user.email === email && user.password === password);
+
   if (!foundUser) {
     showAuthError(text().invalidLogin);
     return;
@@ -317,9 +393,15 @@ function handleAuthSubmit(event) {
 function login(user) {
   state.currentUser = { id: user.id, name: user.name, email: user.email };
   setJSON(STORAGE_KEYS.session, state.currentUser);
+
   loadCurrentData();
-  $("#authPage").classList.add("hidden");
-  $("#dashboardPage").classList.remove("hidden");
+
+  const authPage = $("#authPage");
+  const dashboardPage = $("#dashboardPage");
+
+  if (authPage) authPage.classList.add("hidden");
+  if (dashboardPage) dashboardPage.classList.remove("hidden");
+
   translatePage();
   renderDashboard();
 }
@@ -328,10 +410,18 @@ function logout() {
   state.currentUser = null;
   state.transactions = [];
   state.bills = [];
+
   localStorage.removeItem(STORAGE_KEYS.session);
-  $("#dashboardPage").classList.add("hidden");
-  $("#authPage").classList.remove("hidden");
-  $("#authForm").reset();
+
+  const dashboardPage = $("#dashboardPage");
+  const authPage = $("#authPage");
+  const authForm = $("#authForm");
+
+  if (dashboardPage) dashboardPage.classList.add("hidden");
+  if (authPage) authPage.classList.remove("hidden");
+  if (authForm) authForm.reset();
+
+  setAuthMode("login");
 }
 
 function getSummary() {
@@ -352,41 +442,56 @@ function getSummary() {
 
 function renderSummary() {
   const summary = getSummary();
-  $("#incomeTotal").textContent = formatCurrency(summary.income);
-  $("#expenseTotal").textContent = formatCurrency(summary.expense);
-  $("#balanceTotal").textContent = formatCurrency(summary.balance);
-  $("#pendingTotal").textContent = formatCurrency(summary.pendingBills);
+
+  setText("#incomeTotal", formatCurrency(summary.income));
+  setText("#expenseTotal", formatCurrency(summary.expense));
+  setText("#balanceTotal", formatCurrency(summary.balance));
+  setText("#pendingTotal", formatCurrency(summary.pendingBills));
 }
 
 function renderPriorityBills() {
   const container = $("#priorityBills");
+  if (!container) return;
+
   const pending = state.bills
     .filter((bill) => !bill.paid)
-    .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+    .sort((a, b) => new Date(brDateToISO(a.dueDate)) - new Date(brDateToISO(b.dueDate)));
 
   if (pending.length === 0) {
     container.innerHTML = `<p class="muted">${text().noBills}</p>`;
     return;
   }
 
-  container.innerHTML = pending.map((bill) => `
-    <div class="priority-item">
-      <div>
-        <strong>${escapeHTML(bill.name)}</strong>
-        <span>${formatCurrency(Number(bill.amount))} • ${escapeHTML(bill.category)} • ${dueText(bill.dueDate)}</span>
+  container.innerHTML = pending.map((bill) => {
+    return `
+      <div class="priority-item">
+        <div>
+          <strong>${escapeHTML(bill.name)}</strong>
+          <span>
+            ${formatCurrency(Number(bill.amount))} •
+            ${escapeHTML(bill.category)} •
+            ${formatDate(bill.dueDate)} •
+            ${dueText(bill.dueDate)}
+          </span>
+        </div>
+
+        <button class="bill-action" data-action="pay-bill" data-id="${bill.id}">
+          ${text().markPaid}
+        </button>
       </div>
-      <button class="bill-action" data-action="pay-bill" data-id="${bill.id}">${text().markPaid}</button>
-    </div>
-  `).join("");
+    `;
+  }).join("");
 }
 
 function renderAlerts() {
   const alerts = state.bills
     .filter((bill) => !bill.paid && daysUntil(bill.dueDate) >= 0 && daysUntil(bill.dueDate) <= 2)
-    .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+    .sort((a, b) => new Date(brDateToISO(a.dueDate)) - new Date(brDateToISO(b.dueDate)));
 
   const alertsList = $("#alertsList");
   const floatingAlert = $("#floatingAlert");
+
+  if (!alertsList || !floatingAlert) return;
 
   if (alerts.length === 0) {
     alertsList.innerHTML = `<p class="muted">${text().noAlerts}</p>`;
@@ -400,7 +505,10 @@ function renderAlerts() {
         <strong>${escapeHTML(bill.name)}</strong>
         <span>${formatCurrency(Number(bill.amount))} • ${formatDate(bill.dueDate)} • ${dueText(bill.dueDate)}</span>
       </div>
-      <button class="bill-action" data-action="pay-bill" data-id="${bill.id}">${text().markPaid}</button>
+
+      <button class="bill-action" data-action="pay-bill" data-id="${bill.id}">
+        ${text().markPaid}
+      </button>
     </div>
   `).join("");
 
@@ -411,7 +519,12 @@ function renderAlerts() {
 function renderTransactions() {
   const table = $("#transactionsTable");
   const noTransactions = $("#noTransactions");
-  const sorted = [...state.transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  if (!table || !noTransactions) return;
+
+  const sorted = [...state.transactions].sort((a, b) => {
+    return new Date(brDateToISO(b.date)) - new Date(brDateToISO(a.date));
+  });
 
   noTransactions.classList.toggle("hidden", sorted.length > 0);
 
@@ -422,7 +535,11 @@ function renderTransactions() {
       <td>${transaction.type === "income" ? text().income : text().expense}</td>
       <td>${escapeHTML(transaction.category)}</td>
       <td>${formatDate(transaction.date)}</td>
-      <td><button class="delete-button" data-action="delete-transaction" data-id="${transaction.id}">${text().delete}</button></td>
+      <td>
+        <button class="delete-button" data-action="delete-transaction" data-id="${transaction.id}">
+          ${text().delete}
+        </button>
+      </td>
     </tr>
   `).join("");
 }
@@ -430,7 +547,12 @@ function renderTransactions() {
 function renderBills() {
   const table = $("#billsTable");
   const noBills = $("#noBills");
-  const sorted = [...state.bills].sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+
+  if (!table || !noBills) return;
+
+  const sorted = [...state.bills].sort((a, b) => {
+    return new Date(brDateToISO(a.dueDate)) - new Date(brDateToISO(b.dueDate));
+  });
 
   noBills.classList.toggle("hidden", sorted.length > 0);
 
@@ -440,10 +562,17 @@ function renderBills() {
       <td>${formatCurrency(Number(bill.amount))}</td>
       <td>${escapeHTML(bill.category)}</td>
       <td>${formatDate(bill.dueDate)}</td>
-      <td class="${bill.paid ? "status-paid" : "status-pending"}">${bill.paid ? text().paid : text().pending}</td>
+      <td class="${bill.paid ? "status-paid" : "status-pending"}">
+        ${bill.paid ? text().paid : text().pending}
+      </td>
       <td class="actions-cell">
-        <button class="bill-action" data-action="toggle-bill" data-id="${bill.id}">${bill.paid ? text().markPending : text().markPaid}</button>
-        <button class="delete-button" data-action="delete-bill" data-id="${bill.id}">${text().delete}</button>
+        <button class="bill-action" data-action="toggle-bill" data-id="${bill.id}">
+          ${bill.paid ? text().markPending : text().markPaid}
+        </button>
+
+        <button class="delete-button" data-action="delete-bill" data-id="${bill.id}">
+          ${text().delete}
+        </button>
       </td>
     </tr>
   `).join("");
@@ -460,33 +589,45 @@ function renderDashboard() {
 
 function handleTransactionSubmit(event) {
   event.preventDefault();
+
   state.transactions.push({
     id: makeId(),
     description: $("#transactionDescription").value.trim(),
     amount: Number($("#transactionAmount").value),
     type: $("#transactionType").value,
     category: $("#transactionCategory").value.trim(),
-    date: $("#transactionDate").value
+    date: brDateToISO($("#transactionDate").value)
   });
+
   saveCurrentData();
+
   event.target.reset();
-  $("#transactionDate").value = todayISO();
+
+  const transactionDate = $("#transactionDate");
+  if (transactionDate) transactionDate.value = todayBR();
+
   renderDashboard();
 }
 
 function handleBillSubmit(event) {
   event.preventDefault();
+
   state.bills.push({
     id: makeId(),
     name: $("#billName").value.trim(),
     amount: Number($("#billAmount").value),
     category: $("#billCategory").value.trim(),
-    dueDate: $("#billDueDate").value,
+    dueDate: brDateToISO($("#billDueDate").value),
     paid: false
   });
+
   saveCurrentData();
+
   event.target.reset();
-  $("#billDueDate").value = todayISO();
+
+  const billDueDate = $("#billDueDate");
+  if (billDueDate) billDueDate.value = todayBR();
+
   renderDashboard();
   playAlertSoundIfNeeded();
 }
@@ -539,7 +680,10 @@ function escapeHTML(value) {
 }
 
 function playAlertSoundIfNeeded() {
-  const urgent = state.bills.some((bill) => !bill.paid && daysUntil(bill.dueDate) >= 0 && daysUntil(bill.dueDate) <= 2);
+  const urgent = state.bills.some((bill) => {
+    return !bill.paid && daysUntil(bill.dueDate) >= 0 && daysUntil(bill.dueDate) <= 2;
+  });
+
   if (!urgent) return;
 
   try {
@@ -547,43 +691,70 @@ function playAlertSoundIfNeeded() {
     const audioContext = new AudioContextClass();
     const oscillator = audioContext.createOscillator();
     const gain = audioContext.createGain();
+
     oscillator.connect(gain);
     gain.connect(audioContext.destination);
+
     oscillator.type = "sine";
     oscillator.frequency.value = 880;
     gain.gain.value = 0.03;
+
     oscillator.start();
     oscillator.stop(audioContext.currentTime + 0.25);
+
     setTimeout(() => audioContext.close(), 400);
   } catch {
     // Alguns navegadores bloqueiam som automático. O alerta visual continua funcionando.
   }
 }
 
+function addClick(selector, callback) {
+  const element = $(selector);
+  if (element) element.addEventListener("click", callback);
+}
+
+function addSubmit(selector, callback) {
+  const element = $(selector);
+  if (element) element.addEventListener("submit", callback);
+}
+
 function init() {
   const settings = getJSON(STORAGE_KEYS.settings, {});
+
   state.language = settings.language || "pt";
   state.darkMode = settings.darkMode ?? true;
 
   applySettings();
 
-  $("#loginTab").addEventListener("click", () => setAuthMode("login"));
-  $("#registerTab").addEventListener("click", () => setAuthMode("register"));
-  $("#authForm").addEventListener("submit", handleAuthSubmit);
-  $("#transactionForm").addEventListener("submit", handleTransactionSubmit);
-  $("#billForm").addEventListener("submit", handleBillSubmit);
-  $("#dashboardPage").addEventListener("click", handleDashboardClick);
+  addClick("#loginTab", () => setAuthMode("login"));
+  addClick("#registerTab", () => setAuthMode("register"));
 
-  $("#authLanguageButton").addEventListener("click", toggleLanguage);
-  $("#languageButton").addEventListener("click", toggleLanguage);
-  $("#authThemeButton").addEventListener("click", toggleTheme);
-  $("#themeButton").addEventListener("click", toggleTheme);
-  $("#logoutButton").addEventListener("click", logout);
+  addSubmit("#authForm", handleAuthSubmit);
+  addSubmit("#transactionForm", handleTransactionSubmit);
+  addSubmit("#billForm", handleBillSubmit);
 
-  $("#transactionDate").value = todayISO();
-  $("#billDueDate").value = todayISO();
+  const dashboardPage = $("#dashboardPage");
+  if (dashboardPage) {
+    dashboardPage.addEventListener("click", handleDashboardClick);
+  }
+
+  addClick("#authLanguageButton", toggleLanguage);
+  addClick("#languageButton", toggleLanguage);
+  addClick("#authThemeButton", toggleTheme);
+  addClick("#themeButton", toggleTheme);
+  addClick("#logoutButton", logout);
+
+  const transactionDate = $("#transactionDate");
+  const billDueDate = $("#billDueDate");
+
+  aplicarMascaraData(transactionDate);
+  aplicarMascaraData(billDueDate);
+
+  if (transactionDate) transactionDate.value = todayBR();
+  if (billDueDate) billDueDate.value = todayBR();
 
   const session = getJSON(STORAGE_KEYS.session, null);
+
   if (session) {
     login(session);
   } else {
