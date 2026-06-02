@@ -1,6 +1,6 @@
 # Finanças Pessoais
 
-Projeto web desenvolvido para controle de finanças pessoais, com foco em organização mensal, cadastro de transações, contas a pagar, alertas de vencimento e autenticação local de usuários.
+Projeto web desenvolvido para controle de finanças pessoais, com foco em organização mensal, cadastro de transações, contas a pagar, alertas de vencimento e autenticação de usuários.
 
 Este projeto foi criado a partir de uma necessidade real: minha mãe queria uma forma simples e organizada de controlar os gastos dela. A partir disso, desenvolvi uma aplicação para registrar entradas, saídas, contas a pagar e acompanhar melhor o resumo financeiro do mês.
 
@@ -8,7 +8,7 @@ Este projeto foi criado a partir de uma necessidade real: minha mãe queria uma 
 
 O projeto pode ser visualizado de duas formas:
 
-* Baixando o código e abrindo o arquivo `index.html` diretamente no navegador.
+* Baixando o código e abrindo o arquivo `index.html` com Live Server.
 * Acessando a versão online pelo GitHub Pages.
 
 ```text
@@ -17,8 +17,10 @@ https://mariliamezalheiradev.github.io/financas-pessoais/
 
 ## Funcionalidades
 
-* Login de usuário local
-* Cadastro de usuário local
+* Login com Firebase Authentication
+* Cadastro de usuário com e-mail e senha
+* Dados salvos online no Firebase Firestore
+* Acesso com a mesma conta pelo celular, PC ou notebook
 * Dashboard financeiro mensal
 * Sidebar lateral esquerda para navegação
 * Páginas separadas dentro do dashboard
@@ -55,16 +57,21 @@ https://mariliamezalheiradev.github.io/financas-pessoais/
 * HTML5
 * CSS3
 * JavaScript
-* LocalStorage para armazenamento dos dados no navegador
+* Firebase Authentication
+* Firebase Firestore
+* LocalStorage apenas para preferências do sistema, como tema e idioma
 
 ## Estrutura de arquivos
 
 ```bash
-financas-pessoais-html-css-js
+financas-pessoais
 ├── index.html
-├── style.css
-├── script.js
-└── README.md
+├── README.md
+├── css
+│   └── style.css
+└── js
+    ├── script.js
+    └── firebase-config.js
 ```
 
 ## Como usar o site
@@ -84,8 +91,7 @@ Para começar:
 9. Veja o card de prioridade para acompanhar as contas pendentes.
 10. Acesse a página de Alertas para visualizar contas próximas do vencimento.
 11. Quando uma conta estiver faltando 2 dias ou 1 dia para vencer, o sistema exibirá um alerta automático e tocará um alarme.
-12. Caso queira, alterne o idioma do sistema entre português e inglês.
-13. Também é possível alternar entre modo claro e modo escuro.
+12. Entre com a mesma conta em outro dispositivo para visualizar os mesmos dados.
 
 ## Sistema de alertas
 
@@ -100,27 +106,32 @@ O alerta é ativado automaticamente quando uma conta estiver:
 
 Além do aviso visual, o sistema também toca um alarme dentro do próprio site, sem necessidade de permissão do navegador.
 
-## Como visualizar baixando o código
-
-Não é necessário instalar dependências e não é preciso rodar comandos no terminal.
-
-Para abrir o projeto:
-
-1. Baixe ou clone o repositório.
-2. Abra a pasta do projeto.
-3. Clique duas vezes no arquivo `index.html`.
-4. O sistema será aberto diretamente no navegador.
-
 ## Observação sobre armazenamento dos dados
 
-Este projeto utiliza LocalStorage, ou seja, os dados ficam salvos apenas no navegador da pessoa que está usando.
+Agora o projeto utiliza Firebase Firestore para salvar as transações e contas a pagar.
 
 Isso significa que:
 
-* Os dados não são enviados para um banco de dados externo.
-* Os dados não aparecem automaticamente em outro computador ou celular.
-* Se o usuário limpar os dados do navegador, as informações podem ser apagadas.
-* O projeto é ideal para estudo, portfólio e uso simples.
+* Os dados ficam salvos online no Firebase.
+* O usuário pode acessar pelo celular, PC ou notebook usando a mesma conta.
+* Cada usuário visualiza apenas os próprios dados.
+* Tema e idioma continuam salvos no navegador pelo LocalStorage.
+
+## Regras do Firestore
+
+Use estas regras no Firebase Firestore:
+
+```js
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
+```
 
 ## Possíveis melhorias futuras
 
@@ -130,4 +141,3 @@ Isso significa que:
 * Exportação de relatório mensal
 * Melhorias visuais no dashboard
 * Opção de backup dos dados
-* Integração com banco de dados

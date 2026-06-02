@@ -1,3 +1,24 @@
+import { auth, db } from "./firebase-config.js";
+
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  updateProfile
+} from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+
+import {
+  collection,
+  addDoc,
+  getDocs,
+  doc,
+  deleteDoc,
+  updateDoc,
+  query,
+  orderBy
+} from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+
 const STORAGE_KEYS = {
   users: "fp_users_vanilla",
   session: "fp_session_vanilla",
@@ -239,16 +260,29 @@ function getUserDataKey(type) {
   return `fp_${type}_${state.currentUser.email}`;
 }
 
-function saveCurrentData() {
-  if (!state.currentUser) return;
-  setJSON(getUserDataKey("transactions"), state.transactions);
-  setJSON(getUserDataKey("bills"), state.bills);
+async function saveCurrentData() {
+  // Os dados principais agora são salvos no Firebase Firestore.
+  // Esta função fica apenas para compatibilidade com partes antigas do código.
 }
 
-function loadCurrentData() {
+async function loadCurrentData() {
   if (!state.currentUser) return;
-  state.transactions = getJSON(getUserDataKey("transactions"), []);
-  state.bills = getJSON(getUserDataKey("bills"), []);
+
+  const transactionsRef = collection(db, "users", state.currentUser.id, "transactions");
+  const billsRef = collection(db, "users", state.currentUser.id, "bills");
+
+  const transactionsSnapshot = await getDocs(query(transactionsRef, orderBy("createdAt", "desc")));
+  const billsSnapshot = await getDocs(query(billsRef, orderBy("createdAt", "desc")));
+
+  state.transactions = transactionsSnapshot.docs.map((document) => ({
+    id: document.id,
+    ...document.data()
+  }));
+
+  state.bills = billsSnapshot.docs.map((document) => ({
+    id: document.id,
+    ...document.data()
+  }));
 }
 
 function formatCurrency(value) {
@@ -438,11 +472,10 @@ function hideAuthError() {
   box.classList.add("hidden");
 }
 
-function handleAuthSubmit(event) {
+async function handleAuthSubmit(event) {
   event.preventDefault();
   hideAuthError();
 
-  const users = getJSON(STORAGE_KEYS.users, []);
   const name = $("#nameInput").value.trim();
   const email = $("#emailInput").value.trim().toLowerCase();
   const password = $("#passwordInput").value;
@@ -452,32 +485,42 @@ function handleAuthSubmit(event) {
     return;
   }
 
-  if (state.authMode === "register") {
-    if (!name) {
-      showAuthError(text().requiredName);
+  try {
+    if (state.authMode === "register") {
+      if (!name) {
+        showAuthError(text().requiredName);
+        return;
+      }
+
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+
+      await updateProfile(userCredential.user, {
+        displayName: name
+      });
+
       return;
     }
 
-    if (users.some((user) => user.email === email)) {
+    await signInWithEmailAndPassword(auth, email, password);
+  } catch (error) {
+    console.error("Erro no login/cadastro:", error);
+
+    if (error.code === "auth/email-already-in-use") {
       showAuthError(text().userExists);
       return;
     }
 
-    const newUser = { id: makeId(), name, email, password };
-    users.push(newUser);
-    setJSON(STORAGE_KEYS.users, users);
-    login(newUser);
-    return;
+    if (
+      error.code === "auth/invalid-credential" ||
+      error.code === "auth/wrong-password" ||
+      error.code === "auth/user-not-found"
+    ) {
+      showAuthError(text().invalidLogin);
+      return;
+    }
+
+    showAuthError("Não foi possível acessar. Verifique os dados e tente novamente.");
   }
-
-  const foundUser = users.find((user) => user.email === email && user.password === password);
-
-  if (!foundUser) {
-    showAuthError(text().invalidLogin);
-    return;
-  }
-
-  login(foundUser);
 }
 
 function login(user) {
@@ -498,22 +541,12 @@ function login(user) {
   setTimeout(() => runAutomaticDailyAlerts(), 650);
 }
 
-function logout() {
-  state.currentUser = null;
-  state.transactions = [];
-  state.bills = [];
-
-  localStorage.removeItem(STORAGE_KEYS.session);
-
-  const dashboardPage = $("#dashboardPage");
-  const authPage = $("#authPage");
-  const authForm = $("#authForm");
-
-  if (dashboardPage) dashboardPage.classList.add("hidden");
-  if (authPage) authPage.classList.remove("hidden");
-  if (authForm) authForm.reset();
-
-  setAuthMode("login");
+async function logout() {
+  try {
+    await signOut(auth);
+  } catch (error) {
+    console.error("Erro ao sair:", error);
+  }
 }
 
 function getSummary() {
@@ -687,76 +720,101 @@ function renderDashboard() {
   renderBills();
 }
 
-function handleTransactionSubmit(event) {
+async function handleTransactionSubmit(event) {
   event.preventDefault();
 
-  state.transactions.push({
-    id: makeId(),
+  if (!state.currentUser) return;
+
+  const transaction = {
     description: $("#transactionDescription").value.trim(),
     amount: Number($("#transactionAmount").value),
     type: $("#transactionType").value,
     category: $("#transactionCategory").value.trim(),
-    date: brDateToISO($("#transactionDate").value)
-  });
+    date: brDateToISO($("#transactionDate").value),
+    createdAt: new Date().toISOString()
+  };
 
-  saveCurrentData();
+  try {
+    const ref = collection(db, "users", state.currentUser.id, "transactions");
+    await addDoc(ref, transaction);
 
-  event.target.reset();
+    event.target.reset();
 
-  const transactionDate = $("#transactionDate");
-  if (transactionDate) transactionDate.value = todayBR();
+    const transactionDate = $("#transactionDate");
+    if (transactionDate) transactionDate.value = todayBR();
 
-  renderDashboard();
+    await loadCurrentData();
+    renderDashboard();
+  } catch (error) {
+    console.error("Erro ao salvar transação:", error);
+    alert("Não foi possível salvar a transação. Verifique o Firebase e tente novamente.");
+  }
 }
 
-function handleBillSubmit(event) {
+async function handleBillSubmit(event) {
   event.preventDefault();
 
-  state.bills.push({
-    id: makeId(),
+  if (!state.currentUser) return;
+
+  const bill = {
     name: $("#billName").value.trim(),
     amount: Number($("#billAmount").value),
     category: $("#billCategory").value.trim(),
     dueDate: brDateToISO($("#billDueDate").value),
-    paid: false
-  });
+    paid: false,
+    createdAt: new Date().toISOString()
+  };
 
-  saveCurrentData();
+  try {
+    const ref = collection(db, "users", state.currentUser.id, "bills");
+    await addDoc(ref, bill);
 
-  event.target.reset();
+    event.target.reset();
 
-  const billDueDate = $("#billDueDate");
-  if (billDueDate) billDueDate.value = todayBR();
+    const billDueDate = $("#billDueDate");
+    if (billDueDate) billDueDate.value = todayBR();
 
-  renderDashboard();
-
-  runAutomaticDailyAlerts(true);
+    await loadCurrentData();
+    renderDashboard();
+    runAutomaticDailyAlerts(true);
+  } catch (error) {
+    console.error("Erro ao salvar conta:", error);
+    alert("Não foi possível salvar a conta. Verifique o Firebase e tente novamente.");
+  }
 }
 
-function handleDashboardClick(event) {
+async function handleDashboardClick(event) {
   const button = event.target.closest("button[data-action]");
-  if (!button) return;
+  if (!button || !state.currentUser) return;
 
   const action = button.dataset.action;
   const id = button.dataset.id;
 
-  if (action === "delete-transaction") {
-    state.transactions = state.transactions.filter((item) => item.id !== id);
-  }
+  try {
+    if (action === "delete-transaction") {
+      await deleteDoc(doc(db, "users", state.currentUser.id, "transactions", id));
+    }
 
-  if (action === "delete-bill") {
-    state.bills = state.bills.filter((item) => item.id !== id);
-  }
+    if (action === "delete-bill") {
+      await deleteDoc(doc(db, "users", state.currentUser.id, "bills", id));
+    }
 
-  if (action === "toggle-bill" || action === "pay-bill") {
-    state.bills = state.bills.map((bill) => {
-      if (bill.id !== id) return bill;
-      return { ...bill, paid: action === "pay-bill" ? true : !bill.paid };
-    });
-  }
+    if (action === "toggle-bill" || action === "pay-bill") {
+      const bill = state.bills.find((item) => item.id === id);
 
-  saveCurrentData();
-  renderDashboard();
+      if (bill) {
+        await updateDoc(doc(db, "users", state.currentUser.id, "bills", id), {
+          paid: action === "pay-bill" ? true : !bill.paid
+        });
+      }
+    }
+
+    await loadCurrentData();
+    renderDashboard();
+  } catch (error) {
+    console.error("Erro ao atualizar dados:", error);
+    alert("Não foi possível atualizar os dados. Verifique o Firebase e tente novamente.");
+  }
 }
 
 
@@ -949,14 +1007,44 @@ function init() {
   if (transactionDate) transactionDate.value = todayBR();
   if (billDueDate) billDueDate.value = todayBR();
 
-  const session = getJSON(STORAGE_KEYS.session, null);
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      state.currentUser = {
+        id: user.uid,
+        name: user.displayName || user.email.split("@")[0],
+        email: user.email
+      };
 
-  if (session) {
-    login(session);
-  } else {
-    setAuthMode("login");
-    translatePage();
-  }
+      const authPage = $("#authPage");
+      const dashboardPage = $("#dashboardPage");
+
+      if (authPage) authPage.classList.add("hidden");
+      if (dashboardPage) dashboardPage.classList.remove("hidden");
+
+      await loadCurrentData();
+
+      translatePage();
+      setActivePage(getInitialPageFromHash());
+      renderDashboard();
+
+      setTimeout(() => runAutomaticDailyAlerts(), 650);
+    } else {
+      state.currentUser = null;
+      state.transactions = [];
+      state.bills = [];
+
+      const dashboardPage = $("#dashboardPage");
+      const authPage = $("#authPage");
+      const authForm = $("#authForm");
+
+      if (dashboardPage) dashboardPage.classList.add("hidden");
+      if (authPage) authPage.classList.remove("hidden");
+      if (authForm) authForm.reset();
+
+      setAuthMode("login");
+      translatePage();
+    }
+  });
 }
 
 document.addEventListener("DOMContentLoaded", init);

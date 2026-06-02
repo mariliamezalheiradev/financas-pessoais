@@ -1,6 +1,6 @@
 /* =========================================================
-   FINANÇAS PESSOAIS - CSS COMPLETO CORRIGIDO
-   HTML + CSS + JavaScript puro
+   FINANÇAS PESSOAIS - CSS CORRIGIDO
+   HTML + CSS + JavaScript + Firebase
 ========================================================= */
 
 * {
@@ -15,7 +15,7 @@ html {
 
 :root {
   --bg: #f4f7fb;
-  --surface: rgba(255, 255, 255, 0.9);
+  --surface: rgba(255, 255, 255, 0.92);
   --surface-solid: #ffffff;
   --surface-2: #f7f9fd;
   --surface-3: #eef4ff;
@@ -94,9 +94,7 @@ button {
   display: none !important;
 }
 
-/* =============================
-   TELA DE LOGIN
-============================= */
+/* LOGIN */
 
 .auth-page {
   min-height: 100vh;
@@ -104,7 +102,6 @@ button {
   max-width: 1180px;
   margin: 0 auto;
   padding: 48px 28px;
-
   display: grid;
   grid-template-columns: minmax(0, 1fr) 440px;
   gap: 64px;
@@ -121,17 +118,14 @@ button {
   width: 68px;
   height: 68px;
   margin-bottom: 22px;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   border-radius: 22px;
   color: var(--primary);
   background: var(--surface);
   border: 1px solid var(--border);
   box-shadow: var(--shadow-soft);
-
   font-weight: 950;
   font-size: 1.15rem;
 }
@@ -187,13 +181,10 @@ button {
 .header-actions button {
   min-height: 46px;
   padding: 0 22px;
-
   border: 1px solid var(--border);
   border-radius: 15px;
-
   background: var(--surface);
   color: var(--text);
-
   font-weight: 900;
   box-shadow: var(--shadow-soft);
   transition: 0.2s ease;
@@ -202,7 +193,6 @@ button {
 .auth-actions-row button:hover,
 .header-actions button:hover {
   transform: translateY(-2px);
-  border-color: rgba(37, 99, 235, 0.24);
 }
 
 :root.dark .auth-actions-row button,
@@ -212,9 +202,7 @@ button {
   box-shadow: none;
 }
 
-/* =============================
-   PAINÉIS
-============================= */
+/* PAINÉIS */
 
 .panel,
 .auth-card {
@@ -231,6 +219,8 @@ button {
   padding: 34px 32px;
   border-radius: 30px;
   text-align: center;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
 }
 
 :root.dark .panel,
@@ -263,92 +253,43 @@ button {
   margin-bottom: 22px;
 }
 
-/* =============================
-   TABS LOGIN / CADASTRAR CORRIGIDOS
-============================= */
+/* TABS */
 
 .auth-tabs {
   width: 100%;
   height: 58px;
-
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
-
   padding: 6px;
   margin-bottom: 22px;
-
   border-radius: 18px;
   background: var(--surface-2);
   border: 1px solid var(--border);
-
   overflow: hidden;
-  box-sizing: border-box;
 }
 
 .auth-tabs button {
   width: 100%;
   height: 46px;
-  min-height: 46px;
-  max-height: 46px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  padding: 0;
-  margin: 0;
-
   border: none;
   outline: none;
   border-radius: 14px;
-
   background: transparent;
   color: var(--muted);
-
   font-size: 0.95rem;
   font-weight: 950;
-  line-height: 1;
-
-  box-sizing: border-box;
-  box-shadow: none;
-  transform: none;
-
   transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .auth-tabs button:hover {
   background: rgba(37, 99, 235, 0.08);
   color: var(--text);
-  box-shadow: none;
-  transform: none;
 }
 
 .auth-tabs button.active {
-  width: 100%;
-  height: 46px;
-  min-height: 46px;
-  max-height: 46px;
-
-  padding: 0;
-  margin: 0;
-
-  border: none;
-  outline: none;
-
   background: linear-gradient(135deg, #2563eb, #1d4ed8);
   color: #ffffff;
-
-  box-shadow: inset 0 0 0 2px #111827;
-  transform: none;
-}
-
-.auth-tabs button:focus,
-.auth-tabs button:focus-visible,
-.auth-tabs button:active {
-  border: none;
-  outline: none;
-  transform: none;
 }
 
 :root.dark .auth-tabs {
@@ -356,42 +297,26 @@ button {
   border-color: rgba(255, 255, 255, 0.1);
 }
 
-:root.dark .auth-tabs button {
-  color: #a1a1aa;
-}
-
-:root.dark .auth-tabs button:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: #ffffff;
-}
-
 :root.dark .auth-tabs button.active {
   background: linear-gradient(135deg, #ffffff, #d4d4d8);
   color: #111111;
-  box-shadow: inset 0 0 0 2px #111111;
 }
 
-/* =============================
-   ERRO DE LOGIN
-============================= */
+/* ERRO */
 
 .error-box {
   width: 100%;
   margin-bottom: 16px;
   padding: 12px 14px;
-
   border-radius: 14px;
   background: var(--danger-soft);
   color: var(--danger);
   border: 1px solid rgba(220, 38, 38, 0.18);
-
   font-weight: 800;
   font-size: 0.9rem;
 }
 
-/* =============================
-   FORMULÁRIOS
-============================= */
+/* FORMULÁRIOS */
 
 .form-grid {
   width: 100%;
@@ -402,9 +327,7 @@ button {
 label {
   display: grid;
   gap: 7px;
-
   color: var(--text);
-
   font-size: 0.9rem;
   font-weight: 850;
   text-align: left;
@@ -414,21 +337,13 @@ input,
 select {
   width: 100%;
   min-height: 48px;
-
   padding: 0 15px;
-
   color: var(--text);
   background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: 14px;
-
   outline: none;
   transition: 0.2s ease;
-}
-
-input:hover,
-select:hover {
-  border-color: rgba(37, 99, 235, 0.28);
 }
 
 input:focus,
@@ -444,34 +359,20 @@ select:focus {
   border-color: rgba(255, 255, 255, 0.09);
 }
 
-:root.dark input:focus,
-:root.dark select:focus {
-  background: #202024;
-  border-color: rgba(255, 255, 255, 0.32);
-  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.08);
-}
-
-/* =============================
-   BOTÕES
-============================= */
+/* BOTÕES */
 
 .primary-button,
 .bill-action,
 button[type="submit"] {
   min-height: 50px;
   width: 100%;
-
   padding: 0 18px;
-
   border: 0;
   border-radius: 15px;
-
   background: linear-gradient(135deg, #2563eb, #1d4ed8);
   color: #ffffff;
-
   font-weight: 950;
   box-shadow: 0 16px 34px rgba(37, 99, 235, 0.22);
-
   transition: 0.2s ease;
 }
 
@@ -479,7 +380,6 @@ button[type="submit"] {
 .bill-action:hover,
 button[type="submit"]:hover {
   transform: translateY(-2px);
-  box-shadow: 0 22px 40px rgba(37, 99, 235, 0.28);
 }
 
 :root.dark .primary-button,
@@ -490,9 +390,7 @@ button[type="submit"]:hover {
   box-shadow: 0 14px 30px rgba(255, 255, 255, 0.1);
 }
 
-/* =============================
-   DASHBOARD / LAYOUT
-============================= */
+/* DASHBOARD */
 
 .app-shell {
   width: 100%;
@@ -502,9 +400,7 @@ button[type="submit"]:hover {
 .dashboard-layout {
   width: 100%;
   min-height: 100vh;
-
   padding: 24px;
-
   display: grid;
   grid-template-columns: 260px minmax(0, 1fr);
   gap: 24px;
@@ -514,13 +410,10 @@ button[type="submit"]:hover {
 .sidebar {
   position: sticky;
   top: 24px;
-
   width: 100%;
   min-height: calc(100vh - 48px);
-
   padding: 24px 14px;
   border-radius: 26px;
-
   display: flex;
   flex-direction: column;
 }
@@ -533,11 +426,9 @@ button[type="submit"]:hover {
   display: flex;
   align-items: center;
   gap: 12px;
-
   width: 100%;
   padding: 0 10px 20px;
   margin-bottom: 24px;
-
   border-bottom: 1px solid var(--border);
 }
 
@@ -545,17 +436,13 @@ button[type="submit"]:hover {
   min-width: 42px;
   width: 42px;
   height: 42px;
-
   border-radius: 14px;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   background: var(--surface-3);
   color: var(--primary);
   border: 1px solid var(--border);
-
   font-weight: 950;
 }
 
@@ -581,7 +468,6 @@ button[type="submit"]:hover {
 .sidebar-menu {
   width: 100%;
   flex: 1;
-
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -590,9 +476,7 @@ button[type="submit"]:hover {
 .sidebar-menu::before {
   content: "MENU";
   display: block;
-
   margin: 0 10px 8px;
-
   color: var(--muted);
   font-size: 0.74rem;
   font-weight: 950;
@@ -601,58 +485,19 @@ button[type="submit"]:hover {
 
 .sidebar-menu a {
   position: relative;
-
   min-height: 48px;
   width: 100%;
-
   display: flex;
   align-items: center;
-
+  gap: 8px;
   padding: 0 14px 0 42px;
-
   border-radius: 12px;
   border: 1px solid transparent;
-
   text-decoration: none;
   color: var(--muted);
-
   font-size: 0.9rem;
   font-weight: 900;
-
   transition: 0.2s ease;
-}
-
-
-.menu-badge {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-
-  min-width: 22px;
-  height: 22px;
-  padding: 0 7px;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 999px;
-  color: #ffffff;
-  background: var(--danger);
-  border: 2px solid var(--surface);
-
-  font-size: 0.72rem;
-  font-weight: 950;
-  line-height: 1;
-
-  transform: translateY(-50%);
-  box-shadow: 0 8px 18px rgba(220, 38, 38, 0.24);
-}
-
-:root.dark .menu-badge {
-  border-color: #101010;
-  color: #ffffff;
-  background: #ff4b4b;
 }
 
 .sidebar-menu a::before {
@@ -661,125 +506,82 @@ button[type="submit"]:hover {
   font-size: 0.9rem;
 }
 
-.sidebar-menu a[href="#resumo"]::before {
-  content: "⌂";
-}
-
-.sidebar-menu a[href="#alertas"]::before {
-  content: "⚠";
-}
-
-.sidebar-menu a[href="#cadastros"]::before {
-  content: "+";
-}
-
-.sidebar-menu a[href="#transacoes"]::before {
-  content: "◷";
-}
-
-.sidebar-menu a[href="#contas"]::before {
-  content: "$";
-}
+.sidebar-menu a[href="#resumo"]::before { content: "⌂"; }
+.sidebar-menu a[href="#alertas"]::before { content: "⚠"; }
+.sidebar-menu a[href="#cadastros"]::before { content: "+"; }
+.sidebar-menu a[href="#transacoes"]::before { content: "◷"; }
+.sidebar-menu a[href="#contas"]::before { content: "$"; }
 
 .sidebar-menu a::after {
   content: "";
-
   position: absolute;
   left: 0;
   top: 10px;
-
   width: 3px;
   height: 28px;
-
   border-radius: 999px;
   background: var(--primary);
-
   opacity: 0;
   transform: scaleY(0.4);
   transition: 0.2s ease;
 }
 
-.sidebar-menu a:hover {
-  transform: translateX(4px);
-  color: var(--text);
-  background: var(--primary-soft);
-  border-color: var(--border);
-}
-
-body:not(:has(:target)) .sidebar-menu a[href="#resumo"],
-body:has(#resumo:target) .sidebar-menu a[href="#resumo"],
-body:has(#alertas:target) .sidebar-menu a[href="#alertas"],
-body:has(#cadastros:target) .sidebar-menu a[href="#cadastros"],
-body:has(#historico:target) .sidebar-menu a[href="#historico"] {
+.sidebar-menu a:hover,
+.sidebar-menu a.active {
   color: var(--text);
   background: var(--primary-soft);
   border-color: var(--border);
   box-shadow: var(--shadow-soft);
 }
 
-:root.dark body:not(:has(:target)) .sidebar-menu a[href="#resumo"],
-:root.dark body:has(#resumo:target) .sidebar-menu a[href="#resumo"],
-:root.dark body:has(#alertas:target) .sidebar-menu a[href="#alertas"],
-:root.dark body:has(#cadastros:target) .sidebar-menu a[href="#cadastros"],
-:root.dark body:has(#historico:target) .sidebar-menu a[href="#historico"] {
+.sidebar-menu a.active::after {
+  opacity: 1;
+  transform: scaleY(1);
+}
+
+:root.dark .sidebar-menu a:hover,
+:root.dark .sidebar-menu a.active {
   color: #ffffff;
   background: linear-gradient(90deg, #303030, #1f1f1f);
   border-color: rgba(255, 255, 255, 0.1);
 }
 
-body:not(:has(:target)) .sidebar-menu a[href="#resumo"]::after,
-body:has(#resumo:target) .sidebar-menu a[href="#resumo"]::after,
-body:has(#alertas:target) .sidebar-menu a[href="#alertas"]::after,
-body:has(#cadastros:target) .sidebar-menu a[href="#cadastros"]::after,
-body:has(#historico:target) .sidebar-menu a[href="#historico"]::after {
-  opacity: 1;
-  transform: scaleY(1);
+.menu-badge {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  margin-left: auto;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: #ef4444;
+  font-size: 0.72rem;
+  font-weight: 950;
+  box-shadow: 0 0 18px rgba(239, 68, 68, 0.35);
 }
-
-/* =============================
-   BOTÃO SAIR
-============================= */
 
 .sidebar-logout {
   width: 100%;
   min-height: 46px;
-
   margin-top: auto;
-
   border-radius: 13px;
   border: 1px solid rgba(220, 38, 38, 0.22);
-
   background: var(--danger-soft);
   color: var(--danger);
-
   font-weight: 950;
   transition: 0.2s ease;
 }
 
 .sidebar-logout:hover {
   transform: translateY(-2px);
-  background: rgba(220, 38, 38, 0.16);
 }
-
-:root.dark .sidebar-logout {
-  color: #ff6b6b;
-  background: rgba(255, 75, 75, 0.1);
-  border-color: rgba(255, 75, 75, 0.24);
-}
-
-:root.dark .sidebar-logout:hover {
-  background: rgba(255, 75, 75, 0.18);
-}
-
-/* =============================
-   CONTEÚDO PRINCIPAL
-============================= */
 
 .dashboard-main {
   width: 100%;
   max-width: 1180px;
   margin: 0 auto;
-
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: 24px;
@@ -788,13 +590,10 @@ body:has(#historico:target) .sidebar-menu a[href="#historico"]::after {
 
 .dashboard-header {
   grid-column: 1 / -1;
-
   width: 100%;
   min-height: 170px;
-
   padding: 32px 28px;
   border-radius: var(--radius-xl);
-
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -810,10 +609,9 @@ body:has(#historico:target) .sidebar-menu a[href="#historico"]::after {
 }
 
 .app-page {
+  display: none;
   grid-column: 1 / -1;
   width: 100%;
-  display: none;
-  animation: pageFade 0.24s ease;
 }
 
 .app-page.active-page {
@@ -821,28 +619,10 @@ body:has(#historico:target) .sidebar-menu a[href="#historico"]::after {
   gap: 24px;
 }
 
-.page-panel-full {
-  width: 100%;
-}
-
-@keyframes pageFade {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 .summary-grid,
 .priority-section,
-#alertas,
 .forms-grid,
 .content-grid {
-  grid-column: 1 / -1;
   width: 100%;
 }
 
@@ -856,11 +636,9 @@ body:has(#historico:target) .sidebar-menu a[href="#historico"]::after {
   min-height: 136px;
   padding: 28px 24px;
   border-radius: var(--radius-lg);
-
   display: flex;
   flex-direction: column;
   justify-content: center;
-
   transition: 0.2s ease;
 }
 
@@ -907,6 +685,10 @@ body:has(#historico:target) .sidebar-menu a[href="#historico"]::after {
   gap: 24px;
 }
 
+.page-panel-full {
+  min-height: 360px;
+}
+
 .priority-list,
 #alertsList {
   display: grid;
@@ -920,18 +702,10 @@ body:has(#historico:target) .sidebar-menu a[href="#historico"]::after {
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-
   padding: 14px;
-
   border-radius: 14px;
   background: var(--surface-2);
   border: 1px solid var(--border);
-}
-
-.priority-item > div,
-.alert-item > div,
-.bill-row > div {
-  min-width: 0;
 }
 
 .priority-item span,
@@ -951,10 +725,6 @@ body:has(#historico:target) .sidebar-menu a[href="#historico"]::after {
   flex-shrink: 0;
 }
 
-/* =============================
-   TABELAS
-============================= */
-
 .table-wrapper {
   width: 100%;
   overflow-x: auto;
@@ -970,10 +740,8 @@ table {
 th,
 td {
   padding: 13px 12px;
-
   text-align: left;
   border-bottom: 1px solid var(--border);
-
   color: var(--text);
   white-space: nowrap;
 }
@@ -995,10 +763,8 @@ th {
 .status-button {
   min-height: 36px;
   padding: 0 12px;
-
   border-radius: 10px;
   border: 1px solid var(--border);
-
   font-weight: 850;
   transition: 0.2s ease;
 }
@@ -1009,22 +775,36 @@ th {
   border-color: rgba(220, 38, 38, 0.2);
 }
 
-.status-button {
+.status-paid {
   color: var(--success);
-  background: var(--success-soft);
-  border-color: rgba(22, 163, 74, 0.2);
+  font-weight: 900;
 }
 
-.floating-alert {
+.status-pending {
+  color: var(--warning);
+  font-weight: 900;
+}
+
+.actions-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.actions-cell .bill-action {
+  min-width: 160px;
+  width: auto;
+}
+
+/* ALERTAS */
+
+.floating-alert,
+.alarm-notification {
   position: fixed;
-  top: 22px;
   right: 22px;
   z-index: 50;
-
-  max-width: 360px;
-
+  max-width: 420px;
   padding: 16px 18px;
-
   border-radius: 18px;
   color: var(--text);
   background: var(--surface);
@@ -1032,24 +812,67 @@ th {
   box-shadow: var(--shadow);
 }
 
-/* =============================
-   FOOTER CENTRALIZADO
-============================= */
+.floating-alert {
+  top: 22px;
+}
+
+.alarm-notification {
+  top: 72px;
+  display: grid;
+  grid-template-columns: 44px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  border-color: rgba(239, 68, 68, 0.35);
+  background: linear-gradient(135deg, rgba(239,68,68,.12), var(--surface));
+}
+
+.alarm-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ff6b6b;
+  color: #fff;
+  font-size: 1.4rem;
+  font-weight: 950;
+}
+
+.alarm-content strong {
+  display: block;
+  margin-bottom: 3px;
+  font-weight: 950;
+}
+
+.alarm-content p {
+  color: var(--text);
+  font-size: .92rem;
+  line-height: 1.35;
+}
+
+#alarmNotificationClose {
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(239, 68, 68, .35);
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-weight: 900;
+}
+
+/* FOOTER */
 
 .footer {
   grid-column: 1 / -1;
-
   width: 100%;
   padding: 30px 16px 38px;
   margin: 22px auto 0;
-
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-
   text-align: center;
-
   background: transparent;
   border: none;
   box-shadow: none;
@@ -1058,15 +881,11 @@ th {
 .footer p {
   width: 100%;
   margin: 4px 0;
-  padding: 0;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   text-align: center;
   color: var(--text);
-
   font-size: 0.95rem;
   line-height: 1.5;
 }
@@ -1079,28 +898,15 @@ th {
 
 .footer-heart {
   display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
   margin-left: 8px;
-
   color: #2563eb;
-  font-size: 0.95rem;
-  line-height: 1;
 }
 
 :root.dark .footer-heart {
   color: #737373;
 }
 
-/* =============================
-   ANIMAÇÃO AO TROCAR LOGIN / CADASTRO
-============================= */
-
-.auth-card {
-  transform-style: preserve-3d;
-  backface-visibility: hidden;
-}
+/* ANIMAÇÃO LOGIN/CADASTRO */
 
 .auth-form-animate {
   animation: flipAuth 0.6s ease both;
@@ -1123,9 +929,7 @@ th {
   }
 }
 
-/* =============================
-   RESPONSIVO
-============================= */
+/* RESPONSIVO */
 
 @media (max-width: 1100px) {
   .auth-page {
@@ -1183,10 +987,6 @@ th {
     padding: 16px;
   }
 
-  .auth-hero h1 {
-    font-size: clamp(2rem, 8vw, 3rem);
-  }
-
   .auth-card {
     padding: 26px 20px;
     border-radius: 24px;
@@ -1236,177 +1036,24 @@ th {
     min-width: 0;
   }
 
-  .footer {
-    padding: 24px 8px 32px;
+  .alarm-notification,
+  .floating-alert {
+    left: 16px;
+    right: 16px;
+    max-width: none;
+  }
+
+  .alarm-notification {
+    grid-template-columns: 40px 1fr;
+  }
+
+  #alarmNotificationClose {
+    grid-column: 1 / -1;
+    width: 100%;
   }
 
   .footer p {
     font-size: 0.85rem;
     flex-wrap: wrap;
-  }
-}
-
-/* Navegação por páginas internas do dashboard */
-.sidebar-menu a.active {
-  color: var(--text);
-  background: var(--primary-soft);
-  border-color: var(--border);
-  box-shadow: var(--shadow-soft);
-}
-
-.sidebar-menu a.active::after {
-  opacity: 1;
-  transform: scaleY(1);
-}
-
-:root.dark .sidebar-menu a.active {
-  color: #ffffff;
-  background: linear-gradient(90deg, #303030, #1f1f1f);
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-.actions-cell {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.actions-cell .bill-action,
-.actions-cell .delete-button {
-  width: auto;
-  min-width: 132px;
-  white-space: nowrap;
-}
-
-@media (max-width: 760px) {
-  .actions-cell {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .actions-cell .bill-action,
-  .actions-cell .delete-button {
-    width: 100%;
-    min-width: 0;
-  }
-}
-
-/* =============================
-   NOTIFICAÇÃO DE ALERTA / ALARME
-============================= */
-
-.alarm-notification {
-  position: fixed;
-  top: 24px;
-  right: 24px;
-  z-index: 100;
-
-  width: min(420px, calc(100vw - 32px));
-  padding: 16px;
-
-  display: grid;
-  grid-template-columns: 44px minmax(0, 1fr) auto;
-  gap: 12px;
-  align-items: center;
-
-  border-radius: 20px;
-  color: var(--text);
-  background: var(--surface-solid);
-  border: 1px solid rgba(220, 38, 38, 0.28);
-  box-shadow: var(--shadow);
-
-  animation: alarmShow 0.35s ease, alarmPulse 1.2s ease 0.35s 2;
-}
-
-:root.dark .alarm-notification {
-  background: linear-gradient(180deg, #1f1414, #111113);
-  border-color: rgba(255, 75, 75, 0.35);
-}
-
-.alarm-icon {
-  width: 44px;
-  height: 44px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 15px;
-  color: #ffffff;
-  background: var(--danger);
-
-  font-weight: 950;
-  font-size: 1.2rem;
-}
-
-.alarm-content {
-  min-width: 0;
-}
-
-.alarm-content strong {
-  display: block;
-  color: var(--text);
-  font-weight: 950;
-  margin-bottom: 3px;
-}
-
-.alarm-content p {
-  color: var(--muted);
-  font-size: 0.9rem;
-  line-height: 1.35;
-}
-
-.alarm-notification button {
-  min-height: 38px;
-  padding: 0 12px;
-
-  border-radius: 11px;
-  border: 1px solid rgba(220, 38, 38, 0.24);
-
-  color: var(--danger);
-  background: var(--danger-soft);
-
-  font-weight: 900;
-}
-
-@keyframes alarmShow {
-  from {
-    opacity: 0;
-    transform: translateY(-12px) scale(0.96);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-@keyframes alarmPulse {
-  0%, 100% {
-    transform: translateY(0) scale(1);
-  }
-
-  50% {
-    transform: translateY(0) scale(1.025);
-  }
-}
-
-@media (max-width: 760px) {
-  .alarm-notification {
-    top: 16px;
-    right: 16px;
-    left: 16px;
-    width: auto;
-    grid-template-columns: 40px minmax(0, 1fr);
-  }
-
-  .alarm-icon {
-    width: 40px;
-    height: 40px;
-  }
-
-  .alarm-notification button {
-    grid-column: 1 / -1;
-    width: 100%;
   }
 }
