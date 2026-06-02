@@ -97,14 +97,6 @@ Isso significa que:
 * Se o usuário limpar os dados do navegador, as informações podem ser apagadas.
 * O projeto é ideal para estudo, portfólio e uso simples.
 
-## Observações
-
-Este projeto foi desenvolvido com objetivo educacional e de portfólio.
-
-A aplicação não utiliza React, TypeScript, Node.js, Express, Vite, backend, banco de dados externo, Render ou Vercel.
-
-Todas as funcionalidades foram feitas apenas com HTML, CSS e JavaScript puro.
-
 ## Status do projeto
 
 Projeto finalizado em HTML, CSS e JavaScript puro.
