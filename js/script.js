@@ -411,13 +411,13 @@ function setAuthMode(mode) {
   if (nameField) nameField.classList.toggle("hidden", mode !== "register");
   if (nameInput) nameInput.required = mode === "register";
 
-  if (authCard) {
-    authCard.classList.remove("auth-form-animate");
+if (authCard) {
+  authCard.classList.remove("auth-form-animate");
 
-    void authCard.offsetWidth;
-
+  setTimeout(() => {
     authCard.classList.add("auth-form-animate");
-  }
+  }, 10);
+}
 
   hideAuthError();
   translatePage();
