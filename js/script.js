@@ -1,7 +1,8 @@
 const STORAGE_KEYS = {
   users: "fp_users_vanilla",
   session: "fp_session_vanilla",
-  settings: "fp_settings_vanilla"
+  settings: "fp_settings_vanilla",
+  alertHistory: "fp_alert_history_vanilla"
 };
 
 const translations = {
@@ -48,12 +49,14 @@ const translations = {
     paid: "Paga",
     pending: "Pendente",
     alerts: "Alertas",
-    noAlerts: "Nenhuma conta vencendo nos próximos 2 dias.",
+    noAlerts: "Nenhuma conta vencida ou vencendo nos próximos 2 dias.",
     alertTitle: "Contas próximas do vencimento",
     dueIn: "vence em",
     days: "dia(s)",
     overview: "Resumo",
     records: "Cadastros",
+    transactionsMenu: "Transações",
+    accountsMenu: "Contas",
     darkMode: "Modo escuro",
     lightMode: "Modo claro",
     logout: "Sair",
@@ -67,9 +70,13 @@ const translations = {
     userExists: "Este e-mail já está cadastrado.",
     shortPassword: "A senha precisa ter pelo menos 6 caracteres.",
     requiredName: "Informe seu nome para criar a conta.",
-    alertFloating: "conta(s) vencendo em até 2 dias.",
+    alertFloating: "alerta(s) de contas.",
+    automaticAlertMessage: "Você tem conta faltando 2 dias ou 1 dia para vencer.",
     overdue: "vencida há",
-    today: "vence hoje"
+    today: "vence hoje",
+    alertNotificationTitle: "Atenção!",
+    alertNotificationMessage: "Você tem conta vencida ou vencendo em até 2 dias.",
+    close: "Fechar"
   },
   en: {
     appName: "Personal Finance",
@@ -114,12 +121,14 @@ const translations = {
     paid: "Paid",
     pending: "Pending",
     alerts: "Alerts",
-    noAlerts: "No bills due in the next 2 days.",
+    noAlerts: "No overdue bills or bills due in the next 2 days.",
     alertTitle: "Bills due soon",
     dueIn: "due in",
     days: "day(s)",
     overview: "Overview",
     records: "Records",
+    transactionsMenu: "Transactions",
+    accountsMenu: "Bills",
     darkMode: "Dark mode",
     lightMode: "Light mode",
     logout: "Logout",
@@ -133,9 +142,13 @@ const translations = {
     userExists: "This email is already registered.",
     shortPassword: "Password must be at least 6 characters.",
     requiredName: "Enter your name to create the account.",
-    alertFloating: "bill(s) due within 2 days.",
+    alertFloating: "bill alert(s).",
+    automaticAlertMessage: "You have a bill due in 2 days or 1 day.",
     overdue: "overdue by",
-    today: "due today"
+    today: "due today",
+    alertNotificationTitle: "Attention!",
+    alertNotificationMessage: "You have a bill overdue or due within 2 days.",
+    close: "Close"
   }
 };
 
@@ -145,7 +158,9 @@ let state = {
   authMode: "login",
   currentUser: null,
   transactions: [],
-  bills: []
+  bills: [],
+  currentPage: "resumo",
+  lastAlertSignature: ""
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -273,6 +288,72 @@ function dueText(date) {
   return `${text().dueIn} ${days} ${text().days}`;
 }
 
+function getUrgentBills() {
+  return state.bills
+    .filter((bill) => !bill.paid && daysUntil(bill.dueDate) <= 2)
+    .sort((a, b) => new Date(brDateToISO(a.dueDate)) - new Date(brDateToISO(b.dueDate)));
+}
+
+
+function getAutomaticAlertBills() {
+  return state.bills
+    .filter((bill) => {
+      const days = daysUntil(bill.dueDate);
+      return !bill.paid && (days === 2 || days === 1);
+    })
+    .sort((a, b) => new Date(brDateToISO(a.dueDate)) - new Date(brDateToISO(b.dueDate)));
+}
+
+function getTodayAlertKey() {
+  if (!state.currentUser) return STORAGE_KEYS.alertHistory;
+  return `${STORAGE_KEYS.alertHistory}_${state.currentUser.email}`;
+}
+
+function runAutomaticDailyAlerts(force = false) {
+  const automaticBills = getAutomaticAlertBills();
+  if (automaticBills.length === 0) return;
+
+  const historyKey = getTodayAlertKey();
+  const alreadyShown = getJSON(historyKey, []);
+  const today = todayISO();
+
+  const pendingAlerts = automaticBills.filter((bill) => {
+    const days = daysUntil(bill.dueDate);
+    const alertId = `${today}_${bill.id}_${days}`;
+    return force || !alreadyShown.includes(alertId);
+  });
+
+  if (pendingAlerts.length === 0) return;
+
+  const first = pendingAlerts[0];
+  const message = pendingAlerts.length === 1
+    ? `${first.name} - ${formatCurrency(Number(first.amount))} - ${formatDate(first.dueDate)} - ${dueText(first.dueDate)}`
+    : `${pendingAlerts.length} ${text().alertFloating} ${first.name} - ${formatDate(first.dueDate)} - ${dueText(first.dueDate)}`;
+
+  showAlertNotification(message);
+  playAlertSoundIfNeeded(true);
+
+  const newHistory = [
+    ...alreadyShown,
+    ...pendingAlerts.map((bill) => `${today}_${bill.id}_${daysUntil(bill.dueDate)}`)
+  ];
+
+  setJSON(historyKey, [...new Set(newHistory)].slice(-200));
+}
+
+function getUrgentAlertMessage(urgentBills = getUrgentBills()) {
+  if (urgentBills.length === 0) return "";
+
+  const firstBill = urgentBills[0];
+  const firstBillText = `${firstBill.name} - ${formatCurrency(Number(firstBill.amount))} - ${formatDate(firstBill.dueDate)} - ${dueText(firstBill.dueDate)}`;
+
+  if (urgentBills.length === 1) {
+    return firstBillText;
+  }
+
+  return `${urgentBills.length} ${text().alertFloating} ${firstBillText}`;
+}
+
 function saveSettings() {
   setJSON(STORAGE_KEYS.settings, {
     language: state.language,
@@ -323,11 +404,20 @@ function setAuthMode(mode) {
   const registerTab = $("#registerTab");
   const nameField = $("#nameField");
   const nameInput = $("#nameInput");
+  const authCard = $(".auth-card");
 
   if (loginTab) loginTab.classList.toggle("active", mode === "login");
   if (registerTab) registerTab.classList.toggle("active", mode === "register");
   if (nameField) nameField.classList.toggle("hidden", mode !== "register");
   if (nameInput) nameInput.required = mode === "register";
+
+  if (authCard) {
+    authCard.classList.remove("auth-form-animate");
+
+    void authCard.offsetWidth;
+
+    authCard.classList.add("auth-form-animate");
+  }
 
   hideAuthError();
   translatePage();
@@ -403,7 +493,9 @@ function login(user) {
   if (dashboardPage) dashboardPage.classList.remove("hidden");
 
   translatePage();
+  setActivePage(getInitialPageFromHash());
   renderDashboard();
+  setTimeout(() => runAutomaticDailyAlerts(), 650);
 }
 
 function logout() {
@@ -484,9 +576,7 @@ function renderPriorityBills() {
 }
 
 function renderAlerts() {
-  const alerts = state.bills
-    .filter((bill) => !bill.paid && daysUntil(bill.dueDate) >= 0 && daysUntil(bill.dueDate) <= 2)
-    .sort((a, b) => new Date(brDateToISO(a.dueDate)) - new Date(brDateToISO(b.dueDate)));
+  const alerts = getUrgentBills();
 
   const alertsList = $("#alertsList");
   const floatingAlert = $("#floatingAlert");
@@ -496,6 +586,7 @@ function renderAlerts() {
   if (alerts.length === 0) {
     alertsList.innerHTML = `<p class="muted">${text().noAlerts}</p>`;
     floatingAlert.classList.add("hidden");
+    updateAlertBadge(0);
     return;
   }
 
@@ -514,6 +605,15 @@ function renderAlerts() {
 
   floatingAlert.textContent = `${alerts.length} ${text().alertFloating}`;
   floatingAlert.classList.remove("hidden");
+  updateAlertBadge(alerts.length);
+}
+
+function updateAlertBadge(count = getUrgentBills().length) {
+  const badge = $("#alertBadge");
+  if (!badge) return;
+
+  badge.textContent = count > 99 ? "99+" : String(count);
+  badge.classList.toggle("hidden", count === 0);
 }
 
 function renderTransactions() {
@@ -629,7 +729,8 @@ function handleBillSubmit(event) {
   if (billDueDate) billDueDate.value = todayBR();
 
   renderDashboard();
-  playAlertSoundIfNeeded();
+
+  runAutomaticDailyAlerts(true);
 }
 
 function handleDashboardClick(event) {
@@ -658,6 +759,32 @@ function handleDashboardClick(event) {
   renderDashboard();
 }
 
+
+function setActivePage(page) {
+  const validPages = ["resumo", "alertas", "cadastros", "transacoes", "contas"];
+  const nextPage = validPages.includes(page) ? page : "resumo";
+
+  state.currentPage = nextPage;
+
+  $$('[data-page-section]').forEach((section) => {
+    section.classList.toggle('active-page', section.dataset.pageSection === nextPage);
+  });
+
+  $$('[data-page-link]').forEach((link) => {
+    link.classList.toggle('active', link.dataset.pageLink === nextPage);
+  });
+
+  if (window.location.hash !== `#${nextPage}`) {
+    history.replaceState(null, '', `#${nextPage}`);
+  }
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function getInitialPageFromHash() {
+  return window.location.hash.replace('#', '') || 'resumo';
+}
+
 function toggleLanguage() {
   state.language = state.language === "pt" ? "en" : "pt";
   applySettings();
@@ -679,16 +806,60 @@ function escapeHTML(value) {
     .replaceAll("'", "&#039;");
 }
 
-function playAlertSoundIfNeeded() {
-  const urgent = state.bills.some((bill) => {
-    return !bill.paid && daysUntil(bill.dueDate) >= 0 && daysUntil(bill.dueDate) <= 2;
-  });
+function showAlertNotification(message = getUrgentAlertMessage()) {
+  if (!message) return;
 
-  if (!urgent) return;
+  const notification = $("#alarmNotification");
+  const title = $("#alarmNotificationTitle");
+  const textBox = $("#alarmNotificationText");
+  const closeButton = $("#alarmNotificationClose");
+
+  if (title) title.textContent = text().alertNotificationTitle;
+  if (textBox) textBox.textContent = message;
+  if (closeButton) closeButton.textContent = text().close;
+
+  if (notification) {
+    notification.classList.remove("hidden");
+
+    window.clearTimeout(notification.dataset.timeoutId);
+    const timeoutId = window.setTimeout(() => {
+      notification.classList.add("hidden");
+    }, 9000);
+
+    notification.dataset.timeoutId = timeoutId;
+  }
+
+}
+
+function getAlertSoundDuration(urgentBills = getUrgentBills()) {
+  const daysList = urgentBills.map((bill) => daysUntil(bill.dueDate));
+
+  if (daysList.includes(1)) return 3;
+  if (daysList.includes(2)) return 3;
+
+  return 0;
+}
+
+function playAlertSoundIfNeeded(force = false) {
+  const urgentBills = getUrgentBills();
+  const duration = getAlertSoundDuration(urgentBills);
+
+  if (urgentBills.length === 0 || duration === 0) return;
+
+  const signature = urgentBills
+    .map((bill) => `${bill.id}-${bill.paid}-${bill.dueDate}-${daysUntil(bill.dueDate)}`)
+    .join("|");
+
+  if (!force && signature === state.lastAlertSignature) return;
+
+  state.lastAlertSignature = signature;
 
   try {
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
     const audioContext = new AudioContextClass();
+    const startTime = audioContext.currentTime;
+    const endTime = startTime + duration;
+
     const oscillator = audioContext.createOscillator();
     const gain = audioContext.createGain();
 
@@ -696,13 +867,23 @@ function playAlertSoundIfNeeded() {
     gain.connect(audioContext.destination);
 
     oscillator.type = "sine";
-    oscillator.frequency.value = 880;
-    gain.gain.value = 0.03;
+    oscillator.frequency.setValueAtTime(daysUntil(urgentBills[0].dueDate) === 1 ? 980 : 880, startTime);
 
-    oscillator.start();
-    oscillator.stop(audioContext.currentTime + 0.25);
+    gain.gain.setValueAtTime(0.001, startTime);
+    gain.gain.linearRampToValueAtTime(0.075, startTime + 0.08);
 
-    setTimeout(() => audioContext.close(), 400);
+    for (let time = startTime; time < endTime; time += 0.5) {
+      gain.gain.setValueAtTime(0.075, time);
+      gain.gain.linearRampToValueAtTime(0.02, time + 0.25);
+      gain.gain.linearRampToValueAtTime(0.075, time + 0.5);
+    }
+
+    gain.gain.linearRampToValueAtTime(0.001, endTime);
+
+    oscillator.start(startTime);
+    oscillator.stop(endTime);
+
+    setTimeout(() => audioContext.close(), (duration * 1000) + 500);
   } catch {
     // Alguns navegadores bloqueiam som automático. O alerta visual continua funcionando.
   }
@@ -738,11 +919,26 @@ function init() {
     dashboardPage.addEventListener("click", handleDashboardClick);
   }
 
+  $$('[data-page-link]').forEach((link) => {
+    link.addEventListener('click', (event) => {
+      event.preventDefault();
+      setActivePage(link.dataset.pageLink);
+    });
+  });
+
+  window.addEventListener('hashchange', () => {
+    setActivePage(getInitialPageFromHash());
+  });
+
   addClick("#authLanguageButton", toggleLanguage);
   addClick("#languageButton", toggleLanguage);
   addClick("#authThemeButton", toggleTheme);
   addClick("#themeButton", toggleTheme);
   addClick("#logoutButton", logout);
+  addClick("#alarmNotificationClose", () => {
+    const notification = $("#alarmNotification");
+    if (notification) notification.classList.add("hidden");
+  });
 
   const transactionDate = $("#transactionDate");
   const billDueDate = $("#billDueDate");
