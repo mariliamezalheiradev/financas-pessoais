@@ -20,7 +20,14 @@ https://mariliamezalheiradev.github.io/financas-pessoais/
 * Login de usuário local
 * Cadastro de usuário local
 * Dashboard financeiro mensal
-* Resumo de entradas, saídas, saldo e total em aberto
+* Sidebar lateral esquerda para navegação
+* Páginas separadas dentro do dashboard
+* Página de resumo financeiro
+* Página de alertas
+* Página de cadastros
+* Página de transações
+* Página de contas cadastradas
+* Resumo de entradas, saídas, saldo atual e total em aberto
 * Card de total em aberto
 * Card de prioridade para contas pendentes
 * Cadastro manual de transações
@@ -30,15 +37,17 @@ https://mariliamezalheiradev.github.io/financas-pessoais/
 * Marcar contas como pagas ou pendentes
 * Excluir transações
 * Excluir contas
-* Alerta automático para contas vencendo em até 2 dias
-* Aviso visual de vencimento próximo
-* Som de alerta quando uma conta próxima do vencimento é cadastrada
+* Alerta automático para contas próximas do vencimento
+* Alerta visual dentro do sistema
+* Badge de notificação no menu de Alertas
+* Alarme automático quando faltar 2 dias para o vencimento
+* Alarme automático quando faltar 1 dia para o vencimento
+* Som de alerta com duração aproximada de 3 segundos
 * Botão para alternar o idioma entre português e inglês
 * Datas no formato brasileiro no idioma português: dia/mês/ano
 * Datas no formato inglês quando o idioma estiver em inglês
 * Modo claro
 * Modo escuro
-* Sidebar lateral esquerda
 * Layout responsivo para desktop, tablet e celular
 
 ## Tecnologias utilizadas
@@ -66,14 +75,30 @@ Para começar:
 
 1. Crie uma conta informando nome, e-mail e senha.
 2. Faça login com o e-mail e senha cadastrados.
-3. Cadastre suas transações de entrada ou saída.
-4. Cadastre suas contas a pagar.
-5. Acompanhe o resumo mensal no dashboard.
-6. Consulte o total em aberto para visualizar o valor das contas ainda não pagas.
-7. Veja o card de prioridade para acompanhar as contas pendentes.
-8. Quando uma conta estiver vencendo em até 2 dias, o sistema exibirá um alerta automático.
-9. Caso queira, alterne o idioma do sistema entre português e inglês.
-10. Também é possível alternar entre modo claro e modo escuro.
+3. Acesse o dashboard financeiro.
+4. Use o menu lateral para navegar entre as páginas do sistema.
+5. Cadastre suas transações de entrada ou saída.
+6. Cadastre suas contas a pagar.
+7. Acompanhe o resumo mensal no dashboard.
+8. Consulte o total em aberto para visualizar o valor das contas ainda não pagas.
+9. Veja o card de prioridade para acompanhar as contas pendentes.
+10. Acesse a página de Alertas para visualizar contas próximas do vencimento.
+11. Quando uma conta estiver faltando 2 dias ou 1 dia para vencer, o sistema exibirá um alerta automático e tocará um alarme.
+12. Caso queira, alterne o idioma do sistema entre português e inglês.
+13. Também é possível alternar entre modo claro e modo escuro.
+
+## Sistema de alertas
+
+O sistema possui uma área específica para alertas de vencimento.
+
+Quando existir uma conta próxima do vencimento, o menu lateral exibirá um badge vermelho com a quantidade de alertas ativos, semelhante a uma notificação de aplicativo.
+
+O alerta é ativado automaticamente quando uma conta estiver:
+
+* Faltando 2 dias para vencer
+* Faltando 1 dia para vencer
+
+Além do aviso visual, o sistema também toca um alarme dentro do próprio site, sem necessidade de permissão do navegador.
 
 ## Como visualizar baixando o código
 
@@ -97,13 +122,7 @@ Isso significa que:
 * Se o usuário limpar os dados do navegador, as informações podem ser apagadas.
 * O projeto é ideal para estudo, portfólio e uso simples.
 
-## Status do projeto
-
-Projeto finalizado em HTML, CSS e JavaScript puro.
-
-O sistema pode ser visualizado baixando o código e abrindo o arquivo `index.html`, ou acessando a versão online publicada no GitHub Pages.
-
-Possíveis melhorias futuras:
+## Possíveis melhorias futuras
 
 * Filtros por período
 * Gráficos financeiros
@@ -111,3 +130,4 @@ Possíveis melhorias futuras:
 * Exportação de relatório mensal
 * Melhorias visuais no dashboard
 * Opção de backup dos dados
+* Integração com banco de dados
