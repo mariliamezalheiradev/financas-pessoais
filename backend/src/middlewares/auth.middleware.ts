@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import { readDatabase } from "../utils/database.js";
 
 export interface AuthenticatedRequest extends Request {
