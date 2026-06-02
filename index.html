@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Finanças Pessoais</title>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+  <main id="authPage" class="auth-page">
+    <section class="auth-hero">
+      <div class="brand-pill">FP</div>
+      <span data-i18n="appName">Finanças Pessoais</span>
+      <h1 data-i18n="heroTitle">Controle seu mês com clareza</h1>
+      <p data-i18n="authHelp">Organize suas entradas, saídas e contas a pagar de forma simples.</p>
+      <div class="auth-actions-row">
+        <button id="authLanguageButton" type="button">English</button>
+        <button id="authThemeButton" type="button">Modo claro</button>
+      </div>
+    </section>
+
+    <section class="auth-card panel">
+      <div class="auth-header">
+        <span data-i18n="access">Acesso</span>
+        <h2 id="authTitle">Entrar na conta</h2>
+      </div>
+
+      <div class="auth-tabs">
+        <button id="loginTab" class="active" type="button">Login</button>
+        <button id="registerTab" type="button">Cadastrar</button>
+      </div>
+
+      <div id="authError" class="error-box hidden"></div>
+
+      <form id="authForm" class="form-grid">
+        <label id="nameField" class="hidden">
+          <span data-i18n="name">Nome</span>
+          <input id="nameInput" type="text" autocomplete="name" />
+        </label>
+
+        <label>
+          <span data-i18n="email">E-mail</span>
+          <input id="emailInput" type="email" autocomplete="email" required />
+        </label>
+
+        <label>
+          <span data-i18n="password">Senha</span>
+          <input id="passwordInput" type="password" autocomplete="current-password" minlength="6" required />
+        </label>
+
+        <button id="authSubmit" class="primary-button" type="submit">Entrar</button>
+      </form>
+    </section>
+  </main>
+
+  <main id="dashboardPage" class="app-shell hidden">
+    <div class="dashboard-layout">
+      <aside class="sidebar panel">
+        <div class="brand-row">
+          <div class="brand-mark">FP</div>
+          <div>
+            <strong data-i18n="appName">Finanças Pessoais</strong>
+            <small data-i18n="panel">Painel financeiro</small>
+          </div>
+        </div>
+
+        <nav class="sidebar-menu">
+          <a href="#resumo" data-i18n="overview">Resumo</a>
+          <a href="#alertas" data-i18n="alerts">Alertas</a>
+          <a href="#cadastros" data-i18n="records">Cadastros</a>
+          <a href="#historico" data-i18n="history">Histórico</a>
+        </nav>
+      </aside>
+
+      <section class="dashboard-main">
+        <header class="dashboard-header panel">
+          <div>
+            <span data-i18n="monthlyDashboard">Dashboard mensal</span>
+            <h1 id="welcomeTitle">Olá!</h1>
+          </div>
+
+          <div class="header-actions">
+            <button id="languageButton" type="button">English</button>
+            <button id="themeButton" type="button">Modo claro</button>
+            <button id="logoutButton" type="button">Sair</button>
+          </div>
+        </header>
+
+        <div id="floatingAlert" class="floating-alert hidden"></div>
+
+        <section id="resumo" class="summary-grid">
+          <article class="summary-card panel">
+            <span data-i18n="incoming">Entrou no mês</span>
+            <strong id="incomeTotal">R$ 0,00</strong>
+          </article>
+          <article class="summary-card panel">
+            <span data-i18n="outgoing">Saiu no mês</span>
+            <strong id="expenseTotal">R$ 0,00</strong>
+          </article>
+          <article class="summary-card panel">
+            <span data-i18n="currentBalance">Saldo atual</span>
+            <strong id="balanceTotal">R$ 0,00</strong>
+          </article>
+          <article class="summary-card panel highlight-card">
+            <span data-i18n="pendingTotal">Total em aberto</span>
+            <strong id="pendingTotal">R$ 0,00</strong>
+          </article>
+        </section>
+
+        <section class="priority-section">
+          <article class="priority-panel panel">
+            <span data-i18n="pendingPriority">Prioridade: contas em aberto</span>
+            <h2 id="priorityTitle">Contas pendentes</h2>
+            <div id="priorityBills" class="priority-list"></div>
+          </article>
+        </section>
+
+        <section id="alertas">
+          <article class="alert-panel panel">
+            <span data-i18n="alerts">Alertas</span>
+            <h2 data-i18n="alertTitle">Contas próximas do vencimento</h2>
+            <div id="alertsList"></div>
+          </article>
+        </section>
+
+        <section id="cadastros" class="forms-grid">
+          <article class="form-card panel">
+            <span data-i18n="transactionForm">Adicionar transação</span>
+            <form id="transactionForm" class="form-grid">
+              <label>
+                <span data-i18n="description">Descrição</span>
+                <input id="transactionDescription" type="text" required />
+              </label>
+              <label>
+                <span data-i18n="amount">Valor</span>
+                <input id="transactionAmount" type="number" min="0" step="0.01" required />
+              </label>
+              <label>
+                <span data-i18n="type">Tipo</span>
+                <select id="transactionType">
+                  <option value="income" data-i18n="income">Entrada</option>
+                  <option value="expense" data-i18n="expense">Saída</option>
+                </select>
+              </label>
+              <label>
+                <span data-i18n="category">Categoria</span>
+                <input id="transactionCategory" type="text" required />
+              </label>
+              <label>
+                <span data-i18n="date">Data</span>
+                <input id="transactionDate" type="date" required />
+              </label>
+              <button class="primary-button" type="submit" data-i18n="saveTransaction">Salvar transação</button>
+            </form>
+          </article>
+
+          <article class="form-card panel">
+            <span data-i18n="billForm">Adicionar conta a pagar</span>
+            <form id="billForm" class="form-grid">
+              <label>
+                <span data-i18n="billName">Nome da conta</span>
+                <input id="billName" type="text" required />
+              </label>
+              <label>
+                <span data-i18n="amount">Valor</span>
+                <input id="billAmount" type="number" min="0" step="0.01" required />
+              </label>
+              <label>
+                <span data-i18n="category">Categoria</span>
+                <input id="billCategory" type="text" required />
+              </label>
+              <label>
+                <span data-i18n="dueDate">Vencimento</span>
+                <input id="billDueDate" type="date" required />
+              </label>
+              <button class="primary-button" type="submit" data-i18n="saveBill">Salvar conta</button>
+            </form>
+          </article>
+        </section>
+
+        <section id="historico" class="content-grid">
+          <article class="list-panel panel">
+            <span data-i18n="history">Histórico</span>
+            <h2 data-i18n="latestTransactions">Últimas transações</h2>
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th data-i18n="description">Descrição</th>
+                    <th data-i18n="amount">Valor</th>
+                    <th data-i18n="type">Tipo</th>
+                    <th data-i18n="category">Categoria</th>
+                    <th data-i18n="date">Data</th>
+                    <th>Ação</th>
+                  </tr>
+                </thead>
+                <tbody id="transactionsTable"></tbody>
+              </table>
+            </div>
+            <p id="noTransactions" class="muted hidden" data-i18n="noTransactions">Nenhuma transação cadastrada.</p>
+          </article>
+
+          <article class="list-panel panel">
+            <span data-i18n="bills">Contas cadastradas</span>
+            <h2 data-i18n="bills">Contas cadastradas</h2>
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th data-i18n="billName">Nome da conta</th>
+                    <th data-i18n="amount">Valor</th>
+                    <th data-i18n="category">Categoria</th>
+                    <th data-i18n="dueDate">Vencimento</th>
+                    <th>Status</th>
+                    <th>Ação</th>
+                  </tr>
+                </thead>
+                <tbody id="billsTable"></tbody>
+              </table>
+            </div>
+            <p id="noBills" class="muted hidden" data-i18n="noBills">Nenhuma conta cadastrada.</p>
+          </article>
+        </section>
+      </section>
+    </div>
+  </main>
+
+  <script src="js/script.js"></script>
+</body>
+</html>
